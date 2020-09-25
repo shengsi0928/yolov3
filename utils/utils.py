@@ -24,25 +24,26 @@ def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
         print("class_conf:",class_conf, "len(class_conf)", len(class_conf))
         print("class_pred",class_pred, "len(class_pred)", len(class_pred))
 
-        # image_pred[:5]代表了x1, y1, x2, y2, obj_conf, class_conf, class_pred
+        # image_pred[:5]代表了x1, y1, x2, y2, obj_conf,后续与class_conf, class_pred进行重叠
         detections = t.cat((image_pred[:, :5], class_conf.float(), class_pred.float()), 1)
 
+        #将检测到的种类提取出来 
         unique_labels = detections[:, -1].cpu().unique()
 
-        print(detections[:, -1])
-        print((unique_labels))
         if pred_data.is_cuda:
             unique_labels = unique_labels.cuda()
 
-
+        # 检测
         for c in unique_labels:
             detections_class = detections[detections[:, -1] == c]
-
+            
+            # 按照检测类型置信度提取前4个预测种类
             _, conf_sort_index = t.sort(detections_class[:4], descending=True)
             detections_class = detections_class(conf_sort_index)
             
             max_detection = []
             while detections_class.size(0):
+                # 
                 max_detection.append(detections_class[0].unsqueeze(0))
                 if len(detections_class) == 1:
                     break;
@@ -52,7 +53,7 @@ def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
             output[image_i] = max_detection if output[image_i] is None else t.cat(
                 (output[image_i], max_detection)
             )
-    # print("box_corner.shape:",box_corner.shape) 
+    # print("box_corner.shape:",box_corner.shape)
 
 
 
@@ -115,5 +116,10 @@ def cvt_img(img, cvt_size):         #为矩形图片添加灰条
 
 
 
-def bbox_iou():
+def bbox_iou(max_detection, detections_class):
     
+
+
+
+
+    return 

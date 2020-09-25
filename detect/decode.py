@@ -69,7 +69,6 @@ class Decodebox(nn.Module):
         _scale = t.Tensor([stride_x, stride_y] * 2).type(FloatTensor)
         
         out = t.cat( (pred_boxes.view(batch_size, -1, 4) *_scale, conf.view(batch_size, -1, 1), pred_class.view(batch_size, -1, self.class_num)), -1)
-        print("out.size = ", out.size())
-        print("anchor_num = ", self.anchor_num)
+        
         return out.data
         
