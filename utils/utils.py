@@ -122,4 +122,4 @@ def bbox_iou(max_detection, detections_class):
 
 
 
-    return 
+    return max_detection
