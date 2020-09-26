@@ -26,11 +26,6 @@ class Decodebox(nn.Module):
             anchors.append(i)
         for anchor in anchors:
             scaled_anchors = [(anchor_width / input_width, anchor_height / input_height) for anchor_width, anchor_height in anchor]
-        # print("batch_size", batch_size)
-        # print("self.anchor_num", self.anchor_num)
-        # print("self.bbox_attr",self.bbox_attr)
-        # print("input_height", input_height)
-        # print("input_width", input_width)
         resize_input = input.resize(batch_size, self.anchor_num, self.bbox_attr, input_height, input_width).permute(0, 1, 3, 4, 2)
         print("resize_iuput.size = ", resize_input.size())
         x = t.sigmoid(resize_input[..., 0])

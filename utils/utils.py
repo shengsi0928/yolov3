@@ -3,7 +3,11 @@ import numpy as np
 import math
 import cv2 
 def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
+    
     box_corner = pred_data.new(pred_data.shape)
+    # np.set_printoptions(suppress=True)
+    print("pred_data[:, :,0]", pred_data[:, :, 0])
+    print("pred_data[:,:,2]", pred_data[:, :, 2])
     best_scores = []
     box_corner[:, :, 0] = pred_data[:, :, 0] - pred_data[:, :, 2] / 2
     box_corner[:, :, 1] = pred_data[:, :, 1] - pred_data[:, :, 3] / 2
@@ -24,7 +28,7 @@ def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
         print("class_conf:",class_conf, "len(class_conf)", len(class_conf))
         print("class_pred",class_pred, "len(class_pred)", len(class_pred))
 
-        # image_pred[:5]代表了x1, y1, x2, y2, obj_conf,后续与class_conf, class_pred进行重叠
+        # image_pred[:5]代表了x1,y1,x2,y2, obj_conf,后续与class_conf, class_pred进行重叠
         detections = t.cat((image_pred[:, :5], class_conf.float(), class_pred.float()), 1)
 
         #将检测到的种类提取出来 
@@ -32,24 +36,27 @@ def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
 
         if pred_data.is_cuda:
             unique_labels = unique_labels.cuda()
-
-        # 检测
+        # 检测每一类物体的置信度
         for c in unique_labels:
+            # 筛选出属于该类的框
             detections_class = detections[detections[:, -1] == c]
             
             # 按照检测类型置信度提取前4个预测种类
-            _, conf_sort_index = t.sort(detections_class[:4], descending=True)
-            detections_class = detections_class(conf_sort_index)
+            _, conf_sort_index = t.sort(detections_class[:, 4], descending=True)
+            print(len(conf_sort_index))
+            print(len(detections_class))
+            detections_class = detections_class[conf_sort_index]
             
             max_detection = []
             while detections_class.size(0):
                 # 
+                np.set_printoptions(suppress=True)
                 max_detection.append(detections_class[0].unsqueeze(0))
                 if len(detections_class) == 1:
                     break;
                 ious = bbox_iou(max_detection[-1], detections_class[1:])
                 max_detection = detections_class[1:][ious < nms_thres] 
-            max_detection = t.cat(max_detection).data
+            max_detection = t.cat(max_detection).data()
             output[image_i] = max_detection if output[image_i] is None else t.cat(
                 (output[image_i], max_detection)
             )
@@ -60,6 +67,17 @@ def nms(pred_data, num_classes, conf_thres = 0.5, nms_thres = 0.5):
     return output
 
     
+
+
+def bbox_iou(max_detection, detections_class):
+    print(max_detection[:, :1])
+    [[x1, y1, x2, y2, obj_conf, class_conf, class_pred]] = max_detection[:, :]
+    (x, y, w, h) = ((x1+x2)/2, (y1+y2)/2, (x2-x1), (y2-y1))
+    for c in detections_class:
+        c = 
+
+    return max_detection
+
 
 def pred_normalization(pred_data, img_size):
 
@@ -114,12 +132,3 @@ def cvt_img(img, cvt_size):         #为矩形图片添加灰条
     # canvas.unsqueeze_(0)
     return canvas
 
-
-
-def bbox_iou(max_detection, detections_class):
-    
-
-
-
-
-    return max_detection
